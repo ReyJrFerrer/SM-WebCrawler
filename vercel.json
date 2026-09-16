@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sm-crawler",
+      "schedule": "0 20 * * *"
+    }
+  ],
+  "functions": {
+    "api/cron/sm-crawler.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
+}
