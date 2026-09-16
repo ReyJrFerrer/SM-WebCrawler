@@ -112,6 +112,12 @@ describe("service account parsing", () => {
     expect(parseServiceAccountJson(Buffer.from(json, "utf8").toString("base64")).private_key).toBe("key");
   });
 
+  it("reads credentials from a file path", () => {
+    const result = parseServiceAccountJson("secrets/service-account.json");
+    expect(result.client_email).toBeDefined();
+    expect(result.private_key).toBeDefined();
+  });
+
   it("does not include credential text in errors", () => {
     try {
       parseServiceAccountJson("super-secret-not-json");

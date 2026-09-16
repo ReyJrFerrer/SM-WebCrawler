@@ -1,3 +1,4 @@
+import { readFileSync, existsSync } from "node:fs";
 import { google, type sheets_v4 } from "googleapis";
 import { CrawlerError } from "../utils/errors";
 import { withRetry } from "../utils/retry";
@@ -9,32 +10,45 @@ type ServiceAccount = {
   private_key?: string;
 };
 
+function tryParseJson(text: string): ServiceAccount | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (parsed && typeof parsed === "object") {
+      return parsed as ServiceAccount;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function parseServiceAccountJson(raw: string): ServiceAccount {
   const trimmed = raw.trim();
   if (!trimmed) {
     throw new CrawlerError("SHEETS_AUTH_ERROR", "Google service account credentials are empty");
   }
 
-  const tryParse = (text: string): ServiceAccount | null => {
+  if (existsSync(trimmed)) {
     try {
-      const parsed: unknown = JSON.parse(text);
-      if (parsed && typeof parsed === "object") {
-        return parsed as ServiceAccount;
+      const text = readFileSync(trimmed, "utf8");
+      const parsed = tryParseJson(text);
+      if (parsed) {
+        return parsed;
       }
-      return null;
     } catch {
-      return null;
+      throw new CrawlerError("SHEETS_AUTH_ERROR", "Google service account credentials file could not be read");
     }
-  };
+    throw new CrawlerError("SHEETS_AUTH_ERROR", "Google service account credentials file does not contain valid JSON");
+  }
 
-  const direct = tryParse(trimmed);
+  const direct = tryParseJson(trimmed);
   if (direct) {
     return direct;
   }
 
   try {
     const decoded = Buffer.from(trimmed, "base64").toString("utf8");
-    const parsed = tryParse(decoded);
+    const parsed = tryParseJson(decoded);
     if (parsed) {
       return parsed;
     }

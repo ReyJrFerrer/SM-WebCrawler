@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "crawl:local": "bun run scripts/run-crawl.ts"
   },
   "dependencies": {
     "googleapis": "^181.0.0",
